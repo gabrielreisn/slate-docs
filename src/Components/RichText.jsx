@@ -3,8 +3,29 @@ import isHotkey from 'is-hotkey'
 import { Editable, withReact, useSlate, Slate } from 'slate-react'
 import { Editor, Transforms, createEditor } from 'slate'
 import { withHistory } from 'slate-history'
-
 import { Button, Icon, Toolbar } from './ComponentUtils'
+
+import { gql, useMutation } from '@apollo/client';
+
+
+// mutation AddTodo($type: String!) {
+//   addTodo(type: $type) {
+//     id
+//     type
+//   }
+// }
+
+
+const SAVE_SLATE = gql`
+  mutation createDocument($type: String!) {
+    createDocument(input: $type) {
+      document {
+        body
+      }
+    }
+  }
+`;
+
 
 const HOTKEYS = {
   'mod+b': 'bold',
@@ -21,7 +42,20 @@ const RichTextExample = () => {
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
+  const [saveData, { data }] = useMutation(SAVE_SLATE);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    try {
+      saveData({ variables: { input: JSON.stringify(value) } });
+    }catch(e) {
+      console.log('error!',e)
+    }
+  }
+
   return (
+    <>
+    <button onClick={(e) => handleClick(e)}>SAVE ME!</button>
     <Slate editor={editor} value={value} onChange={value => setValue(value)}>
       <Toolbar>
         <MarkButton format="bold" icon="format_bold" />
@@ -51,6 +85,7 @@ const RichTextExample = () => {
         }}
       />
     </Slate>
+    </>
   )
 }
 
@@ -110,6 +145,8 @@ const Element = ({ attributes, children, element }) => {
       return <li {...attributes}>{children}</li>
     case 'numbered-list':
       return <ol {...attributes}>{children}</ol>
+    case 'red-text':
+      return <p {...attributes}>{children}</p>  
     default:
       return <p {...attributes}>{children}</p>
   }
