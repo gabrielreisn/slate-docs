@@ -7,20 +7,11 @@ import { Button, Icon, Toolbar } from './ComponentUtils'
 
 import { gql, useMutation } from '@apollo/client';
 
-
-// mutation AddTodo($type: String!) {
-//   addTodo(type: $type) {
-//     id
-//     type
-//   }
-// }
-
-
 const SAVE_SLATE = gql`
-  mutation createDocument($type: String!) {
+  mutation createDocument($type: CreateDocumentInput!) {
     createDocument(input: $type) {
       document {
-        body
+        id
       }
     }
   }
@@ -47,7 +38,7 @@ const RichTextExample = () => {
   const handleClick = (e) => {
     e.preventDefault();
     try {
-      saveData({ variables: { input: JSON.stringify(value) } });
+      saveData({ variables: {"type": { "body": JSON.stringify(value) } }})
     }catch(e) {
       console.log('error!',e)
     }
